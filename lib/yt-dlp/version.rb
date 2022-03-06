@@ -7,5 +7,5 @@
 module YtDlp
   # Semantic Version as well as the bundled binary version.
   # "(major).(minor).(teeny).(pre-release).(binary-version)"
-  VERSION = '0.1.0'
+  VERSION = '0.2.0'
 end
