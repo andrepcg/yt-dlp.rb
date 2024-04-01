@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1] - 2024-04-01
+### Fix
+- Use correct linux binary
+
 ## [0.3.0] - 2024-04-01
 ### Added
 - Upgraded yt-dlp binary to version "2024.03.10"
