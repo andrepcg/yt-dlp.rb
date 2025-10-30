@@ -1,0 +1,102 @@
+name: Auto Update yt-dlp
+
+on:
+  schedule:
+    # Run daily at 23:00 UTC
+    - cron: '0 23 * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  check-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+
+      - name: Get current yt-dlp version
+        id: current_version
+        run: |
+          CURRENT_VERSION=$(vendor/bin/yt-dlp --version)
+          echo "version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "Current yt-dlp version: $CURRENT_VERSION"
+
+      - name: Download latest yt-dlp binaries
+        run: bundle exec rake binaries:latest
+
+      - name: Get new yt-dlp version
+        id: new_version
+        run: |
+          chmod +x vendor/bin/yt-dlp
+          NEW_VERSION=$(vendor/bin/yt-dlp --version)
+          echo "version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "New yt-dlp version: $NEW_VERSION"
+
+      - name: Check if version changed
+        id: version_check
+        run: |
+          if [ "${{ steps.current_version.outputs.version }}" != "${{ steps.new_version.outputs.version }}" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "Version changed from ${{ steps.current_version.outputs.version }} to ${{ steps.new_version.outputs.version }}"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "No version change detected"
+          fi
+
+      - name: Increment gem version
+        if: steps.version_check.outputs.changed == 'true'
+        id: increment_version
+        run: |
+          CURRENT_GEM_VERSION=$(grep "VERSION = " lib/yt-dlp/version.rb | cut -d"'" -f2)
+          echo "Current gem version: $CURRENT_GEM_VERSION"
+          
+          # Parse version components
+          IFS='.' read -r major minor patch <<< "$CURRENT_GEM_VERSION"
+          
+          # Increment minor version and reset patch to 0
+          minor=$((minor + 1))
+          NEW_GEM_VERSION="${major}.${minor}.0"
+          
+          echo "New gem version: $NEW_GEM_VERSION"
+          echo "version=$NEW_GEM_VERSION" >> $GITHUB_OUTPUT
+          
+          # Update version.rb
+          sed -i "s/VERSION = '${CURRENT_GEM_VERSION}'/VERSION = '${NEW_GEM_VERSION}'/" lib/yt-dlp/version.rb
+
+      - name: Update CHANGELOG
+        if: steps.version_check.outputs.changed == 'true'
+        run: |
+          DATE=$(date +%Y-%m-%d)
+          NEW_ENTRY="## [${{ steps.increment_version.outputs.version }}] - ${DATE}\n### Added\n- Upgraded yt-dlp binary to version \"${{ steps.new_version.outputs.version }}\"\n"
+          
+          # Insert new entry after the "# Changelog" header
+          sed -i "2i\\${NEW_ENTRY}" CHANGELOG.md
+
+      - name: Configure Git
+        if: steps.version_check.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Commit and tag changes
+        if: steps.version_check.outputs.changed == 'true'
+        run: |
+          git add lib/yt-dlp/version.rb CHANGELOG.md vendor/bin/yt-dlp vendor/bin/yt-dlp.exe
+          git commit -m "Release v${{ steps.increment_version.outputs.version }}: Update yt-dlp to ${{ steps.new_version.outputs.version }}"
+          git tag "v${{ steps.increment_version.outputs.version }}"
+          git push origin HEAD:master
+          git push origin "v${{ steps.increment_version.outputs.version }}"
+
+      - name: No update needed
+        if: steps.version_check.outputs.changed == 'false'
+        run: echo "yt-dlp is already at the latest version"
+
