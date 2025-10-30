@@ -12,6 +12,5 @@ group :development do
 end
 
 group :extras do
-  gem 'byebug'
   gem 'm'
 end
