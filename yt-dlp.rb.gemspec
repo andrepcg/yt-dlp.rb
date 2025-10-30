@@ -20,11 +20,10 @@ Gem::Specification.new do |spec|
   spec.require_paths = ['lib']
   spec.required_ruby_version = '>= 2.6'
 
-  spec.add_dependency 'terrapin', '>=0.6.0'
+  spec.add_dependency 'terrapin', '~> 1.1'
 
   spec.add_development_dependency 'bundler', '>= 1.6'
-  spec.add_development_dependency 'codeclimate-test-reporter'
   spec.add_development_dependency 'minitest'
-  spec.add_development_dependency 'purdytest'
+  spec.add_development_dependency 'nicetest'
   spec.add_development_dependency 'rake'
 end

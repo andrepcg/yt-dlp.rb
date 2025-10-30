@@ -51,11 +51,4 @@ module YtDlp
   def binary_version
     @binary_version ||= terrapin_line('--version').run.strip
   end
-
-  # Returns user agent
-  #
-  # @return [String] user agent
-  def user_agent
-    @user_agent ||= terrapin_line('--dump-user-agent').run.strip
-  end
 end

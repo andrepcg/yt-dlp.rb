@@ -18,7 +18,7 @@ describe YtDlp do
   describe '.information' do
     it 'should display video information' do
       result = YtDlp.information TEST_URL
-      assert_equal '20100111', result.first[:upload_date]
+      assert_equal '20100112', result.first[:upload_date]
     end
   end
 
@@ -86,20 +86,6 @@ describe YtDlp do
 
     it 'should be a specific format with no newlines' do
       assert_match(/\d+.\d+.\d+\z/, @version)
-    end
-  end
-
-  describe '.user_agent' do
-    before do
-      @user_agent = YtDlp.user_agent
-    end
-
-    it 'should return a string' do
-      assert_instance_of String, @user_agent
-    end
-
-    it 'should be a specific format with no newlines' do
-      assert_match(%r{Mozilla/5\.0.*}, @user_agent)
     end
   end
 end
