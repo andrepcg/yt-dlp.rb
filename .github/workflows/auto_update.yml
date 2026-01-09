@@ -95,6 +95,11 @@ jobs:
           git tag "v${{ steps.increment_version.outputs.version }}"
           git push origin HEAD:master
           git push origin "v${{ steps.increment_version.outputs.version }}"
+      - name: Trigger Publish Gem workflow
+        if: steps.version_check.outputs.changed == 'true'
+        run: gh workflow run "Publish Gem" --ref "v${{ steps.increment_version.outputs.version }}"
+        env:
+          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
 
       - name: No update needed
         if: steps.version_check.outputs.changed == 'false'
