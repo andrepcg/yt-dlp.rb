@@ -13,10 +13,17 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - name: Release Gem
-        if: contains(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
-        uses: cadwallion/publish-rubygems-action@master
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
-          RUBYGEMS_API_KEY: ${{secrets.RUBYGEMS_API_KEY}}
-          RELEASE_COMMAND: rake release
+      - name: Configure Git
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+
+      - name: Release gem
+        run: |
+          mkdir -p ~/.gem
+          echo ":rubygems_api_key: ${{ secrets.RUBYGEMS_API_KEY }}" > ~/.gem/credentials
+          chmod 600 ~/.gem/credentials
+          gem build yt-dlp.rb.gemspec
+          VERSION=$(ruby -e "puts Gem::Specification.load('yt-dlp.rb.gemspec').version")
+          gem push yt-dlp.rb-${VERSION}.gem
+          
