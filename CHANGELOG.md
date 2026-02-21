@@ -1,4 +1,8 @@
 # Changelog
+## [0.10.0] - 2026-02-21
+### Added
+- Upgraded yt-dlp binary to version "2026.02.21"
+
 ## [0.9.0] - 2026-02-04
 ### Added
 - Upgraded yt-dlp binary to version "2026.02.04"
