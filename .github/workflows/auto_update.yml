@@ -99,7 +99,7 @@ jobs:
         if: steps.version_check.outputs.changed == 'true'
         run: gh workflow run "Publish Gem" --ref "v${{ steps.increment_version.outputs.version }}"
         env:
-          GH_TOKEN: ${{ secrets.PAT_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
 
       - name: No update needed
         if: steps.version_check.outputs.changed == 'false'
